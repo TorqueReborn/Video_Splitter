@@ -4,10 +4,11 @@ import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
+import android.os.Environment
 import android.widget.Button
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import java.io.File
 
 class MainActivity : AppCompatActivity() {
 
@@ -40,7 +41,13 @@ class MainActivity : AppCompatActivity() {
             }
 
             val duration = videoFormat!!.getLong(MediaFormat.KEY_DURATION)
-            Log.e("Duration", duration.toString())
+            val halfDuration = duration / 2
+
+            // Create output dirs
+            val outputDir = File(Environment.getExternalStorageDirectory(), "Movies")
+            if (!outputDir.exists()) {
+                outputDir.mkdirs()
+            }
 
         }
     }
