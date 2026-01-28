@@ -39,10 +39,9 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
-            Log.e("TAG", videoTrackIndex.toString())
-            Log.e("TAG", audioTrackIndex.toString())
-            Log.e("TAG", videoFormat.toString())
-            Log.e("TAG", audioFormat.toString())
+            val duration = videoFormat!!.getLong(MediaFormat.KEY_DURATION)
+            Log.e("Duration", duration.toString())
+
         }
     }
 
