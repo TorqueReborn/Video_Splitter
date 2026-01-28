@@ -1,5 +1,6 @@
 package com.ghostreborn.videosplitter
 
+import android.content.Intent
 import android.media.MediaCodec
 import android.media.MediaExtractor
 import android.media.MediaFormat
@@ -51,6 +52,22 @@ class MainActivity : AppCompatActivity() {
             if (!outputDir.exists()) {
                 outputDir.mkdirs()
             }
+
+            val firstHalfFile = File(outputDir, "video_first_half_${System.currentTimeMillis()}.mp4")
+            val secondHalfFile = File(outputDir, "video_second_half_${System.currentTimeMillis()}.mp4")
+
+            // Split first half
+            extractSegment(uri, firstHalfFile, 0, halfDuration, videoTrackIndex, audioTrackIndex, videoFormat, audioFormat)
+
+            // Split second half
+            extractSegment(uri, secondHalfFile, halfDuration, duration, videoTrackIndex, audioTrackIndex, videoFormat, audioFormat)
+
+            inputFd.close()
+
+            // Make files visible to media scanner
+            sendBroadcast(Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(firstHalfFile)))
+            sendBroadcast(Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(secondHalfFile)))
+
 
         }
     }
