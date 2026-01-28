@@ -55,6 +55,58 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun extractSegment(
+        uri: Uri,
+        outputFile: File,
+        startTimeUs: Long,
+        endTimeUs: Long,
+        videoTrackIndex: Int,
+        audioTrackIndex: Int,
+        videoFormat: MediaFormat,
+        audioFormat: MediaFormat?
+    ) {
+        val extractor = MediaExtractor()
+        val inputFd = contentResolver.openFileDescriptor(uri, "r")!!
+        extractor.setDataSource(inputFd.fileDescriptor)
+
+        val muxer = MediaMuxer(outputFile.absolutePath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
+
+        // Add video track
+        extractor.selectTrack(videoTrackIndex)
+        val muxerVideoTrack = muxer.addTrack(videoFormat)
+
+        // Add audio track if available
+        var muxerAudioTrack = -1
+        if (audioTrackIndex != -1 && audioFormat != null) {
+            extractor.unselectTrack(videoTrackIndex)
+            extractor.selectTrack(audioTrackIndex)
+            muxerAudioTrack = muxer.addTrack(audioFormat)
+        }
+
+        muxer.start()
+
+        // Extract video
+        if (audioTrackIndex != -1) {
+            extractor.unselectTrack(audioTrackIndex)
+        }
+        extractor.selectTrack(videoTrackIndex)
+        extractor.seekTo(startTimeUs, MediaExtractor.SEEK_TO_PREVIOUS_SYNC)
+        extractTrack(extractor, muxer, muxerVideoTrack, startTimeUs, endTimeUs)
+
+        // Extract audio
+        if (audioTrackIndex != -1) {
+            extractor.unselectTrack(videoTrackIndex)
+            extractor.selectTrack(audioTrackIndex)
+            extractor.seekTo(startTimeUs, MediaExtractor.SEEK_TO_PREVIOUS_SYNC)
+            extractTrack(extractor, muxer, muxerAudioTrack, startTimeUs, endTimeUs)
+        }
+
+        muxer.stop()
+        muxer.release()
+        extractor.release()
+        inputFd.close()
+    }
+
     private fun extractTrack(
         extractor: MediaExtractor,
         muxer: MediaMuxer,
