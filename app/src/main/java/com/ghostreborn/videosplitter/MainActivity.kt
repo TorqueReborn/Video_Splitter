@@ -68,7 +68,6 @@ class MainActivity : AppCompatActivity() {
             sendBroadcast(Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(firstHalfFile)))
             sendBroadcast(Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(secondHalfFile)))
 
-
         }
     }
 
