@@ -1,16 +1,21 @@
 package com.ghostreborn.videosplitter
 
+import android.media.MediaExtractor
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Button
-import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 
 class MainActivity : AppCompatActivity() {
 
     private val videoPicker = registerForActivityResult(ActivityResultContracts.GetContent()) {uri: Uri? ->
-        Toast.makeText(this@MainActivity, uri.toString(), Toast.LENGTH_LONG).show()
+        if (uri != null) {
+            val inputFd = applicationContext.contentResolver.openFileDescriptor(uri, "r")
+                ?: throw IllegalArgumentException("Cannot open input URI")
+            val extractor = MediaExtractor()
+            extractor.setDataSource(inputFd.fileDescriptor)
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
