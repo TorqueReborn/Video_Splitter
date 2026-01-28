@@ -1,7 +1,9 @@
 package com.ghostreborn.videosplitter
 
+import android.media.MediaCodec
 import android.media.MediaExtractor
 import android.media.MediaFormat
+import android.media.MediaMuxer
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
@@ -9,6 +11,7 @@ import android.widget.Button
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import java.io.File
+import java.nio.ByteBuffer
 
 class MainActivity : AppCompatActivity() {
 
@@ -51,6 +54,42 @@ class MainActivity : AppCompatActivity() {
 
         }
     }
+
+    private fun extractTrack(
+        extractor: MediaExtractor,
+        muxer: MediaMuxer,
+        muxerTrackIndex: Int,
+        startTimeUs: Long,
+        endTimeUs: Long
+    ) {
+        val bufferInfo = MediaCodec.BufferInfo()
+        val buffer = ByteBuffer.allocate(1024 * 1024)
+        var offsetTimeUs = -1L
+
+        while (true) {
+            val sampleSize = extractor.readSampleData(buffer, 0)
+            if (sampleSize < 0) break
+
+            val sampleTime = extractor.sampleTime
+            if (sampleTime > endTimeUs) break
+
+            if (sampleTime >= startTimeUs) {
+                if (offsetTimeUs == -1L) {
+                    offsetTimeUs = sampleTime
+                }
+
+                bufferInfo.presentationTimeUs = sampleTime - offsetTimeUs
+                bufferInfo.size = sampleSize
+                bufferInfo.flags = extractor.sampleFlags
+                bufferInfo.offset = 0
+
+                muxer.writeSampleData(muxerTrackIndex, buffer, bufferInfo)
+            }
+
+            extractor.advance()
+        }
+    }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
