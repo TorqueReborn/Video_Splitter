@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Video Splitter</string>
+    <string name="open_video">Open Video</string>
 </resources>
